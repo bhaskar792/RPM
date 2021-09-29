@@ -1,0 +1,25 @@
+#!/bin/bash
+
+if [ ${USER} != "root" ]
+then
+	echo "${0}: Permission denied" 1>&2
+
+	exit 1
+fi
+
+version=5.12.0
+
+tar -xf pkg/iproute2-${version}.tar.xz
+
+cp src/iproute2/q_rg.c iproute2-${version}/tc
+cp src/iproute2/Makefile iproute2-${version}/tc
+cp src/pkt_sched.h iproute2-${version}/include/uapi/linux
+
+cd iproute2-${version}
+
+make -j $(nproc)
+make install -j $(nproc)
+
+cd ..
+
+rm -r iproute2-${version}

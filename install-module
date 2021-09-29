@@ -1,0 +1,50 @@
+#!/bin/bash
+
+if [ ${USER} != "root" ]
+then
+	echo "${0}: Permission denied" 1>&2
+
+	exit 1
+fi
+
+version=$(uname -r)
+
+BUILD=/lib/modules/${version}/build
+
+sudo -u ${SUDO_USER} mkdir tmp
+
+cp src/linux/sch_rg.c tmp
+cp src/linux/Makefile tmp
+cp src/pkt_sched.h tmp
+#cp src/linux/newip.h tmp
+
+cd tmp
+
+if [ -e ${BUILD}/include/uapi/linux/pkt_sched.h ] && ! [ -e ${BUILD}/include/uapi/linux/pkt_sched.h.backup ]
+then
+	mv ${BUILD}/include/uapi/linux/pkt_sched.h ${BUILD}/include/uapi/linux/pkt_sched.h.backup
+fi
+
+cp pkt_sched.h ${BUILD}/include/uapi/linux
+
+sudo -E -u ${SUDO_USER} make
+
+if [ -e ${BUILD}/include/uapi/linux/pkt_sched.h.backup ]
+then
+	mv ${BUILD}/include/uapi/linux/pkt_sched.h.backup ${BUILD}/include/uapi/linux/pkt_sched.h
+else
+	rm ${BUILD}/include/uapi/linux/pkt_sched.h
+fi
+
+lsmod | grep sch_lbf > /dev/null
+
+if [ $? -eq 0 ]
+then
+	rmmod sch_rg
+fi
+
+insmod sch_rg.ko
+
+cd ..
+
+rm -r tmp

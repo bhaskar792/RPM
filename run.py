@@ -17,10 +17,10 @@ config.set_value('assign_random_names', False)
 
 
 # Verify no errors in qdisc
-if os.system('./install-module') != 0:  # TODO doesn't seem to work
-    exit()
-if os.system('./install-tc-support') != 0: 
-    exit()
+# if os.system('./install-module') != 0:  # TODO doesn't seem to work
+#     exit()
+# if os.system('./install-tc-support') != 0: 
+#     exit()
 # Create nodes
 
 #h = host
@@ -37,26 +37,26 @@ h2_h1.set_address('10.0.1.1/24')
 
 
 def sender_proc():
-    os.system('ping 10.0.1.1 -i 0.1')
+    os.system('ping 10.0.1.1 -f -c 1000')
 
 
 def setup_host(node, interfaces):
     with node:
         for interface in interfaces:
             os.system('tc qdisc replace dev ' + interface.name + ' root rg')
-            tcpdump_process = multiprocessing.Process (target = tcpdump_proc, args=(interface,))
-            tcpdump_process.start ()
+            # tcpdump_process = multiprocessing.Process (target = tcpdump_proc, args=(interface,))
+            # tcpdump_process.start ()
 
-def tcpdump_proc (interface):
-    os.system ('timeout 10 tcpdump -i ' + interface.name + ' -w ' + interface.name +'.pcap')
+# def tcpdump_proc (interface):
+#     os.system ('timeout 10 tcpdump -i ' + interface.name + ' -w ' + interface.name +'.pcap')
 
 setup_host(h1, [h1_h2])
 
 
-with h2:
-    receiver_process = multiprocessing.Process(
-        target=tcpdump_proc, args=(h2_h1,))
-    receiver_process.start()
+# with h2:
+#     receiver_process = multiprocessing.Process(
+#         target=tcpdump_proc, args=(h2_h1,))
+#     receiver_process.start()
 
 # Ensure routers and receivers have started
 time.sleep(1)
@@ -66,7 +66,7 @@ with h1:
         target=sender_proc)
     sender_process.start()
 sender_process.join()
-receiver_process.join()
+# receiver_process.join()
 
 
 ## Show tc qdisc stats

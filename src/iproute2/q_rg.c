@@ -9,20 +9,20 @@
 static void explain(void)
 {
 	fprintf(stderr,
-		"Usage: ... rg [ limit PACKETS ]\n");
+		"Usage: ... rg [ interval ms ]\n");
 }
 
 static int rg_parse_opt(struct qdisc_util *qu, int argc, char **argv,
 			 struct nlmsghdr *n, const char *dev)
 {
-	unsigned int limit = 0;
+	unsigned int interval = 0;
 	struct rtattr *tail;
 
 	while (argc > 0) {
-		if (strcmp(*argv, "limit") == 0) {
+		if (strcmp(*argv, "interval") == 0) {
 			NEXT_ARG();
-			if (get_unsigned(&limit, *argv, 0)) {
-				fprintf(stderr, "Illegal \"limit\"\n");
+			if (get_unsigned(&interval, *argv, 0)) {
+				fprintf(stderr, "Illegal \"interval\"\n");
 				return -1;
 			}
 		} else {
@@ -36,8 +36,8 @@ static int rg_parse_opt(struct qdisc_util *qu, int argc, char **argv,
 	}
 
 	tail = addattr_nest(n, 1024, TCA_OPTIONS | NLA_F_NESTED);
-	if (limit)
-		addattr_l(n, 1024, TCA_RG_LIMIT, &limit, sizeof(limit));
+	if (interval)
+		addattr_l(n, 1024, TCA_RG_INTERVAL, &interval, sizeof(interval));
 	addattr_nest_end(n, tail);
 
 	return 0;
@@ -46,17 +46,17 @@ static int rg_parse_opt(struct qdisc_util *qu, int argc, char **argv,
 static int rg_print_opt(struct qdisc_util *qu, FILE *f, struct rtattr *opt)
 {
 	struct rtattr *tb[TCA_RG_MAX + 1];
-	unsigned int limit;
+	unsigned int interval;
 
 	if (opt == NULL)
 		return 0;
 
 	parse_rtattr_nested(tb, TCA_RG_MAX, opt);
 
-	if (tb[TCA_RG_LIMIT] &&
-	    RTA_PAYLOAD(tb[TCA_RG_LIMIT]) >= sizeof(__u32)) {
-		limit = rta_getattr_u32(tb[TCA_RG_LIMIT]);
-		print_uint(PRINT_ANY, "limit", "limit %up ", limit);
+	if (tb[TCA_RG_INTERVAL] &&
+	    RTA_PAYLOAD(tb[TCA_RG_INTERVAL]) >= sizeof(__u32)) {
+		interval = rta_getattr_u32(tb[TCA_RG_INTERVAL]);
+		print_uint(PRINT_ANY, "interval", "interval %ums ", interval/1000000);
 	}
 
 	return 0;

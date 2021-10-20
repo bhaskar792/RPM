@@ -1266,7 +1266,7 @@ enum {
 /* roundsgate */
 enum {
 	TCA_RG_UNSPEC,
-	TCA_RG_LIMIT,
+	TCA_RG_INTERVAL,
 	__TCA_RG_MAX
 };
 
